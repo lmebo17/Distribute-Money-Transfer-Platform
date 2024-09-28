@@ -1,0 +1,321 @@
+services:
+
+  spring-boot-admin:
+    build:
+      context: ./dmtp
+      dockerfile: ./spring-boot-admin/Dockerfile
+    image: spring-boot-admin-image
+    ports:
+      - "8088:8088"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+    depends_on:
+      config-server:
+        condition: service_healthy
+
+  dmtp-gateway:
+    build:
+      context: ./dmtp
+      dockerfile: ./dmtp-gateway/Dockerfile
+    image: dmtp-gateway
+    ports:
+      - "8085:8085"
+      - "5009:5009"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker, security
+    depends_on:
+      keycloak:
+        condition: service_healthy
+      dmtp-server:
+        condition: service_started
+      fi-integration:
+        condition: service_started
+      transfer-repository:
+        condition: service_started
+      validation-server:
+        condition: service_started
+      mock-mts:
+        condition: service_started
+      config-server:
+        condition: service_healthy
+
+  config-server:
+    build:
+      context: ./dmtp
+      dockerfile: ./dmtp-config/config-server/Dockerfile
+    image: config-server
+    ports:
+      - "8888:8888"
+      - "5004:5004"
+    environment:
+      - SPRING_PROFILES_ACTIVE=native, docker
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8888/actuator/health" ]
+      interval: 2s
+      timeout: 2s
+      retries: 30
+
+  mock-mts:
+    build:
+      context: ./dmtp
+      dockerfile: /mock-mts/Dockerfile
+    image: mock-mts
+    ports:
+      - "8086:8086"
+      - "5011:5011"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+    depends_on:
+      config-server:
+        condition: service_healthy
+
+  validation-server:
+    build:
+      context: ./dmtp
+      dockerfile: /validation-server/Dockerfile
+    image: validation-server
+    ports:
+      - "8090:8090"
+      - "5007:5007"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+    depends_on:
+      postgres:
+        condition: service_started
+      config-server:
+        condition: service_healthy
+
+  dmtp-server:
+    build:
+      context: ./dmtp
+      dockerfile: /dmtp-server/Dockerfile
+    image: dmtp-server
+    ports:
+      - "8084:8084"
+      - "5008:5008"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+    depends_on:
+      config-server:
+        condition: service_healthy
+
+  transfer-repository:
+    build:
+      context: ./dmtp
+      dockerfile: /transfer-repository/Dockerfile
+    image: transfer-repository
+    ports:
+      - "8083:8083"
+      - "5010:5010"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+    depends_on:
+      postgres:
+        condition: service_started
+      config-server:
+        condition: service_healthy
+
+  fi-integration:
+    build:
+      context: ./dmtp
+      dockerfile: /fi-integration/Dockerfile
+    image: fi-integration
+    ports:
+      - "8081:8081"
+      - "5006:5006"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+    depends_on:
+      redis:
+        condition: service_started
+      config-server:
+        condition: service_healthy
+
+  bank-service:
+    build:
+      context: ./
+      dockerfile: /bank-service/Dockerfile
+    image: bank-service
+    ports:
+      - "8082:8082"
+      - "5005:5005"
+    depends_on:
+      postgres:
+        condition: service_started
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+
+  grafana:
+    image: grafana/grafana
+    ports:
+      - "3000:3000"
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./dmtp/observability/grafana/provisioning/dashboards:/etc/grafana/provisioning/dashboards
+      - ./dmtp/observability/grafana/provisioning/datasources:/etc/grafana/provisioning/datasources
+    environment:
+      - GF_SECURITY_ADMIN_USER=user
+      - GF_SECURITY_ADMIN_PASSWORD=pass
+      - GF_DATABASE_TYPE=postgres
+      - GF_DATABASE_HOST=grafana-postgres:5432
+      - GF_DATABASE_NAME=grafana
+      - GF_DATABASE_USER=postgres
+      - GF_DATABASE_PASSWORD=pass
+      - GF_DATABASE_SSL_MODE=disable
+    depends_on:
+      grafana-postgres:
+        condition: service_started
+
+  grafana-postgres:
+    image: postgres:16.3
+    environment:
+      - POSTGRES_DB=grafana
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=pass
+    volumes:
+      - grafana-postgres-data:/var/lib/postgresql2/data
+    ports:
+      - "5433:5432"
+
+  loki:
+    image: grafana/loki:2.8.0
+    user: "root"
+    ports:
+      - "3100:3100"
+    command: [ "-config.file=/etc/loki/loki-config.yml" ]
+    volumes:
+      - ./dmtp/observability/loki/loki-config.yml:/etc/loki/loki-config.yml
+      - ./dmtp/observability/loki/loki-wal:/wal
+      - loki_data:/tmp/loki
+
+  tempo:
+    image: grafana/tempo:2.6.0
+    ports:
+      - "3200:3200"
+      - "4317"
+    command: [ "-config.file=/etc/tempo/tempo-config.yml" ]
+    volumes:
+      - ./dmtp/observability/tempo/tempo-config.yml:/etc/tempo/tempo-config.yml
+
+
+  postgres:
+    image: postgres:16.3
+    environment:
+      - POSTGRES_DB=dmtp
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=pass
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+  redis:
+    image: redis:7.2.5
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:25.0
+    environment:
+      - KC_HEALTH_ENABLED=true
+      - KEYCLOAK_ADMIN=admin
+      - KEYCLOAK_ADMIN_PASSWORD=admin
+      - KC_DB=postgres
+      - KC_DB_URL=jdbc:postgresql://postgres:5432/dmtp
+      - KC_DB_USERNAME=postgres
+      - KC_DB_PASSWORD=pass
+    volumes:
+      - ./dmtp/dmtp-gateway/src/main/resources/dmtp-gateway-realm-export.json:/opt/keycloak/data/import/dmtp-gateway-realm-export.json
+    ports:
+      - "8080:8080"
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          'exec 3<>/dev/tcp/localhost/8080; echo -e "GET /health/ready HTTP/1.1\nhost: localhost:8080\n" >&3; timeout --preserve-status 1 cat <&3 | grep -m 1 status | grep -m 1 UP; ERROR=$?; exec 3<&-; exec 3>&-; exit $ERROR'
+        ]
+    depends_on:
+      - postgres
+    command:
+      - start-dev
+      - --import-realm
+
+  zookeeper:
+    image: confluentinc/cp-zookeeper:latest
+    environment:
+      - ZOOKEEPER_CLIENT_PORT=2181
+    ports:
+      - "2181:2181"
+    volumes:
+      - zookeeper_data:/var/lib/zookeeper
+      - zookeeper_secrets:/etc/zookeeper/secrets
+      - zookeeper_data_store:/var/lib/zookeeper/data
+      - zookeeper_log:/var/lib/zookeeper/log
+
+  kafka:
+    image: confluentinc/cp-kafka:latest
+    depends_on:
+      - zookeeper
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:29092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+    ports:
+      - "9092:9092"
+      - "29092:29092"
+    volumes:
+      - kafka_data:/var/lib/kafka
+      - kafka_secrets:/etc/kafka/secrets
+      - kafka_data_store:/var/lib/kafka/data
+
+  kafdrop:
+    image: obsidiandynamics/kafdrop:latest
+    depends_on:
+      - kafka
+    ports:
+      - "9000:9000"
+    environment:
+      - KAFKA_BROKERCONNECT=kafka:9092
+
+  kafka-ui:
+    image: provectuslabs/kafka-ui:latest
+    ports:
+      - "9090:8080"
+    environment:
+      KAFKA_CLUSTERS_0_NAME: "dmtp-cluster"
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: "kafka:9092"
+      KAFKA_CLUSTERS_0_ZOOKEEPER: "zookeeper:2181"
+    depends_on:
+      - kafka
+
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:0.88.0
+    volumes:
+      - ./dmtp/observability/otel/otel-collector-config.yaml:/etc/otel-collector-config.yaml
+    ports:
+      - "4317:4317"
+      - "4318:4318"
+    command: [ "--config", "/etc/otel-collector-config.yaml" ]
+    depends_on:
+      - loki
+      - tempo
+
+volumes:
+  grafana-data:
+  grafana-postgres-data:
+  postgres-data:
+  redis-data:
+  zookeeper_data:
+  zookeeper_secrets:
+  zookeeper_data_store:
+  zookeeper_log:
+  kafka_data:
+  kafka_secrets:
+  kafka_data_store:
+  loki_data:
+  tempo_data:

@@ -1,0 +1,16 @@
+server:
+  servlet:
+    context-path: /spring-boot-admin
+  port: 8088
+
+spring:
+  config:
+    activate:
+      on-profile: local, test
+  main:
+    allow-bean-definition-overriding: true
+  mvc:
+    pathmatch:
+      matching-strategy: ant_path_matcher
+  application:
+    name: spring-boot-admin

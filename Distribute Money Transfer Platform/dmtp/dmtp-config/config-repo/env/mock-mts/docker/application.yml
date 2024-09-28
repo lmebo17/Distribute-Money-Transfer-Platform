@@ -1,0 +1,49 @@
+server:
+  servlet:
+    context-path: /mock-mts
+  port: 8086
+
+logging:
+  pattern:
+    level: "%5p [${spring.application.name:},%X{trace_id:-},%X{span_id:-}]"
+
+spring:
+  profiles:
+    active: docker
+  main:
+    allow-bean-definition-overriding: true
+  mvc:
+    pathmatch:
+      matching-strategy: ant_path_matcher
+  application:
+    name: mock-mts
+
+  kafka:
+    bootstrap-servers: kafka:9092
+    consumer:
+      auto-offset-reset: earliest
+      group-id: mock-mts-group
+  boot:
+    admin:
+      client:
+        enabled: true
+        instance:
+          name: ${spring.application.name}:${server.port}
+        url: http://spring-boot-admin:8088/spring-boot-admin
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+  endpoint:
+    health:
+      show-details: always
+
+openapi:
+  servers: http://localhost:8085/mock-mts
+
+
+
+
+

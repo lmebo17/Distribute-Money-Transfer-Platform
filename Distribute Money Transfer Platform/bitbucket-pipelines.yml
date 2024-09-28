@@ -1,0 +1,78 @@
+image: maven:3.9.7-amazoncorretto-17-debian
+
+pipelines:
+  default:
+    - parallel:
+        - step:
+            name: Build and Test bank-service
+            caches:
+              - maven
+            script:
+              - cd bank-service
+              - mvn -B verify
+        - step:
+            name: Build and Test config-server
+            caches:
+              - maven
+            script:
+                - cd dmtp/dmtp-config/config-server
+                - mvn -B verify
+        - step:
+            name: Build and Test fi-integration
+            caches:
+              - maven
+            script:
+              - cd dmtp/dmtp-model
+              - mvn clean install
+              - cd ../fi-integration
+              - mvn -B verify
+        - step:
+            name: Build and Test transfer-repository
+            caches:
+              - maven
+            script:
+              - cd dmtp/dmtp-model
+              - mvn clean install
+              - cd ../transfer-repository
+              - mvn -B verify
+        - step:
+            name: Build and Test validation-server
+            caches:
+              - maven
+            script:
+              - cd dmtp/dmtp-model
+              - mvn clean install
+              - cd ../validation-server
+              - mvn -B verify
+        - step:
+            name: Build and Test dmtp-server
+            caches:
+              - maven
+            script:
+              - cd dmtp/dmtp-model
+              - mvn clean install
+              - cd ../dmtp-server
+              - mvn -B verify
+        - step:
+            name: Build and Test dmtp-gateway
+            caches:
+              - maven
+            script:
+              - cd dmtp/dmtp-gateway
+              - mvn -B verify
+        - step:
+            name: Build and Test mts
+            caches:
+              - maven
+            script:
+              - cd dmtp/dmtp-model
+              - mvn clean install
+              - cd ../mock-mts
+              - mvn -B verify
+        - step:
+            name: Build and Test spring-boot-admin
+            caches:
+              - maven
+            script:
+              - cd dmtp/spring-boot-admin
+              - mvn -B verify

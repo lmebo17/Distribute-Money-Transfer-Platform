@@ -1,0 +1,19 @@
+server:
+  servlet:
+    context-path: /spring-boot-admin
+  port: 8088
+
+logging:
+  pattern:
+    level: "%5p [${spring.application.name:},%X{trace_id:-},%X{span_id:-}]"
+
+spring:
+  profiles:
+    active: docker
+  main:
+    allow-bean-definition-overriding: true
+  mvc:
+    pathmatch:
+      matching-strategy: ant_path_matcher
+  application:
+    name: spring-boot-admin

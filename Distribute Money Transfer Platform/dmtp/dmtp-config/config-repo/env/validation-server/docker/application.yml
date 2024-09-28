@@ -1,0 +1,58 @@
+server:
+  servlet:
+    context-path: /validation-server
+  port: 8090
+
+logging:
+  pattern:
+    level: "%5p [${spring.application.name:},%X{trace_id:-},%X{span_id:-}]"
+
+spring:
+  profiles:
+    active: docker
+  main:
+    allow-bean-definition-overriding: true
+  mvc:
+    pathmatch:
+      matching-strategy: ant_path_matcher
+  application:
+    name: validation-server
+  flyway:
+    enabled: true
+    locations:
+      - classpath:db/migration
+    baseline-on-migrate: true
+    default-schema: validation_schema
+  kafka:
+    bootstrap-servers: kafka:9092
+    consumer:
+      auto-offset-reset: earliest
+      group-id: validation-server-group
+  boot:
+    admin:
+      client:
+        enabled: true
+        instance:
+          name: ${spring.application.name}:${server.port}
+        url: http://spring-boot-admin:8088/spring-boot-admin
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    url: jdbc:postgresql://postgres:5432/dmtp
+    username: postgres
+    password: pass
+  jpa:
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+  endpoint:
+    health:
+      show-details: always
+
+openapi:
+  servers: http://localhost:8085/validation-server

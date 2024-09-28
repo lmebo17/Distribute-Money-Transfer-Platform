@@ -1,0 +1,27 @@
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xmlns="http://maven.apache.org/POM/4.0.0"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.azry.dmtp</groupId>
+    <artifactId>dmtp-parent</artifactId>
+    <version>1.0.0-SNAPSHOT</version>
+    <packaging>pom</packaging>
+
+    <modules>
+        <module>fi-integration</module>
+        <module>dmtp-server</module>
+        <module>transfer-repository</module>
+        <module>validation-server</module>
+        <module>dmtp-gateway</module>
+        <module>dmtp-model</module>
+        <module>dmtp-config/config-server</module>
+    </modules>
+
+    <properties>
+        <java.version>17</java.version>
+        <spring-boot.version>3.3.1</spring-boot.version>
+        <spring-cloud.version>2023.0.3</spring-cloud.version>
+    </properties>
+
+</project>

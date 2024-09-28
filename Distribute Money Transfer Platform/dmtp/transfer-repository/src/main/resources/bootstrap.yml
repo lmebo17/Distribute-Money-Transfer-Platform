@@ -1,0 +1,11 @@
+spring:
+  application:
+    name: transfer-repository
+  cloud:
+    config:
+      uri: http://config-server:8888
+      enabled: true
+      profile: docker
+  config:
+    activate:
+      on-profile: docker

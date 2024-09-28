@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<hibernate-reverse-engineering>
+    <schema-selection match-schema="DMTP_SCHEMA" match-table="TRANSFER"/>
+    <schema-selection match-schema="DMTP_SCHEMA" match-table="TRANSFER_STATUS_LOG"/>
+
+    <type-mapping>
+        <sql-type jdbc-type="NUMERIC" precision="8" scale="2" hibernate-type="java.math.BigDecimal"/>
+        <sql-type jdbc-type="TIMESTAMP" hibernate-type="java.time.LocalDateTime"/>
+        <sql-type jdbc-type="DATE" hibernate-type="java.time.LocalDate"/>
+        <sql-type jdbc-type="VARCHAR" hibernate-type="string"/>
+        <sql-type jdbc-type="DATE" hibernate-type="java.time.LocalDate"/>
+        <sql-type jdbc-type="BIGINT" hibernate-type="long"/>
+        <sql-type jdbc-type="INTEGER" hibernate-type="int"/>
+    </type-mapping>
+
+    <table name="TRANSFER" schema="DMTP_SCHEMA">
+        <primary-key>
+            <key-column name="id"/>
+        </primary-key>
+
+    </table>
+
+    <table name="TRANSFER_STATUS_LOG" schema="DMTP_SCHEMA">
+        <primary-key>
+            <key-column name="id"/>
+        </primary-key>
+
+    </table>
+
+
+</hibernate-reverse-engineering>

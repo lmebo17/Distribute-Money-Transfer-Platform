@@ -1,0 +1,70 @@
+enum TransferTypeModel {
+    SEND,
+    RECEIVE
+}
+
+type TransferStatusModel {
+    status: String
+}
+
+type TransferStatusInfo {
+    status: TransferStatusModel
+    statusMessage: String
+    statusTime: String
+}
+
+
+type ParticipantDTO {
+    firstName: String
+    middleName: String
+    lastName: String
+    birthDate: String
+    birthCountry: String
+    country: String
+    address: String
+    mobilePhone: String
+    email: String
+    zipCode: String
+    personalNumber: String
+    citizenship: String
+}
+
+type TransferModel {
+    id: String!
+    mts: String
+    type: TransferTypeModel
+    status: TransferStatusInfo
+    transferNumber: String
+    amount: Float
+    currency: String
+    creationTime: String
+    sendCountry: String
+    receiveCountry: String
+    sender: ParticipantDTO
+    receiver: ParticipantDTO
+}
+
+type TransferStatusLogModel {
+    id: ID!
+    status: TransferStatusInfo
+    transfer: TransferModel
+}
+
+input TransferStatusLogCreationRequest {
+    status: String!
+    statusMessage: String
+    statusTime: String!
+    transferId: String!
+}
+
+
+type Query {
+    getTransferById(id: ID!): TransferModel
+    getTransferStatusLogById(id: ID!): TransferStatusLogModel
+}
+
+type Mutation {
+    createTransferStatusLog(
+        request: TransferStatusLogCreationRequest!
+    ): TransferStatusLogModel
+}

@@ -1,0 +1,63 @@
+server:
+  servlet:
+    context-path: /bank-service
+  port: 8080
+
+spring:
+  config:
+    activate:
+      on-profile: test
+  main:
+    allow-bean-definition-overriding: true
+  mvc:
+    pathmatch:
+      matching-strategy: ant_path_matcher
+  application:
+    name: bank-service
+  jpa:
+    open-in-view: true
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+    properties:
+      hibernate:
+        id:
+          new_generator_mappings: true
+        current_session_context_class: thread
+        temp:
+          use_jdbc_metadata_defaults: true
+        dialect: org.hibernate.dialect.H2Dialect
+  flyway:
+    enabled: true
+    locations:
+      - classpath:migration-test
+
+  datasource:
+    driver-class-name: org.h2.Driver
+    url: jdbc:h2:mem:BANK_SERVICE
+    username: sa
+    password:
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+
+bank-service:
+  currencies:
+    - GEL
+    - EUR
+    - GBP
+    - USD
+
+
+  transaction-success-percentage: 90
+  transaction-scheduling-initialDelay: 10000
+  transaction-scheduling-fixedRate: 10000
+
+  blacklisted-countries:
+    - Russia
+    - Venezuela
+    - Nicaragua
+    - Nauru
+    - Syria
+    - Belarus

@@ -1,0 +1,62 @@
+server:
+  servlet:
+    context-path: /transfer-repository
+  port: 8083
+spring:
+  profiles:
+    active: local, test
+  main:
+    allow-bean-definition-overriding: true
+  mvc:
+    pathmatch:
+      matching-strategy: ant_path_matcher
+  application:
+    name: transfer-repository
+  flyway:
+    enabled: true
+    locations:
+      - classpath:db/migration
+    baseline-on-migrate: true
+    default-schema: dmtp_schema
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+  kafka:
+    bootstrap-servers: localhost:29092
+    consumer:
+      auto-offset-reset: earliest
+      group-id: transfer-repository-group
+    transfer-status-consumer:
+      group-id: transfer-status-topic-group
+  graphql:
+    graphiql:
+      enabled: true
+  boot:
+    admin:
+      client:
+        enabled: true
+        instance:
+          name: ${spring.application.name}:${server.port}
+        url: http://localhost:8088/spring-boot-admin
+  datasource:
+    driver-class-name: org.h2.Driver
+    url: jdbc:h2:mem:DMTP
+    username: sa
+    password:
+  jpa:
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.H2Dialect
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+  endpoint:
+    health:
+      show-details: always
+
+
+
