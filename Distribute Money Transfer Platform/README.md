@@ -1,4 +1,4 @@
-# README #
+The DMTP (Distribute Money Transfer Platform) project represents an international money transfer system integrating financial institutions, banks, and fast money transfer organizations. The project encompasses a back-end application alongside a front-end UI. Its primary focus is on receiving and sending money transfers from various financial systems. The system enables users to "find and send" money transfers from different systems in one interface.
+Developed based on best practices, the project operates on an Event-Driven architecture. DMTP is divided into multiple microservices, facilitating communication predominantly through Apache Kafka. Component-based division simplifies technical support and allows for more efficient resource allocation and the addition of new functionalities with less complexity.
 
-DMTP-2024-Q2-TEAM-Z
-
+In terms of its Event-Driven architecture, it enables indirect connections and asynchronous communication among microservices, fostering scalability and agility in resource distribution and facilitating the addition of new features.
